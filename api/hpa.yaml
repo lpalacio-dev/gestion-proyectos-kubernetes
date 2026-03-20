@@ -1,0 +1,30 @@
+# HPA — escala automáticamente tu API según uso de CPU
+# Requisito: metrics-server instalado en el cluster
+# En Docker Desktop ya viene incluido
+# En minikube: minikube addons enable metrics-server
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api-hpa
+  namespace: gestion-proyectos
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: gestion-proyectos-api
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70  # Si la CPU supera 70%, escala un pod más
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80

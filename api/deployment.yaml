@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gestion-proyectos-api
+  namespace: gestion-proyectos
+  labels:
+    app: gestion-proyectos-api
+spec:
+  replicas: 1  # ¡Aprende escalado horizontal desde el inicio!
+  selector:
+    matchLabels:
+      app: gestion-proyectos-api
+  # Rolling update — Kubernetes reemplaza pods uno a uno sin downtime
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1        # Puede crear 1 pod extra durante el update
+      maxUnavailable: 0  # Nunca deja pods no disponibles
+  template:
+    metadata:
+      labels:
+        app: gestion-proyectos-api
+      # Anotación para que Prometheus descubra automáticamente este pod
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: api
+          # CAMBIA ESTO por tu imagen real cuando la subas a un registry
+          # Ejemplos:
+          #   Docker Hub: tu-usuario/gestion-proyectos-api:latest
+          #   AWS ECR:    123456789.dkr.ecr.us-east-2.amazonaws.com/gestion-proyectos-api:latest
+          #image: tu-usuario/gestion-proyectos-api:latest
+          #imagePullPolicy: Always
+          image: gestion-proyectos-api:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          # Variables desde ConfigMap (no sensibles)
+          envFrom:
+            - configMapRef:
+                name: api-config
+            - secretRef:
+                name: api-secret
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          # Health checks usando el endpoint /healthz que ya tienes en Program.cs
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            failureThreshold: 3
+
+---
+# Service que expone tu API
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-service
+  namespace: gestion-proyectos
+spec:
+  selector:
+    app: gestion-proyectos-api
+  ports:
+    - port: 80
+      targetPort: 8080
+  # LoadBalancer: en local con Docker Desktop da una IP externa
+  # En producción (EKS/GKE) crea un Load Balancer real en la nube
+  type: LoadBalancer

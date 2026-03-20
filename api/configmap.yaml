@@ -1,0 +1,25 @@
+# ConfigMap para configuración NO sensible de tu API
+# La connection string usa el nombre del Service de postgres: "postgres-service"
+# Kubernetes resuelve ese DNS automáticamente dentro del cluster
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-config
+  namespace: gestion-proyectos
+data:
+  # Connection string apuntando al Service de postgres dentro del cluster
+  ConnectionStrings__PostgreSQLConnection: >-
+    Host=postgres-service;
+    Database=gestion_proyectos;
+    Username=postgres;
+    Password=Admin123!;
+    Port=5432
+
+  # JWT — Issuer y Audience (la Key va en el Secret)
+  Jwt__Issuer: "https://gestion-proyectos.local"
+  Jwt__Audience: "https://gestion-proyectos.local"
+
+  # Entorno
+  ASPNETCORE_ENVIRONMENT: "Production"
+  ASPNETCORE_URLS: "http://+:8080"
