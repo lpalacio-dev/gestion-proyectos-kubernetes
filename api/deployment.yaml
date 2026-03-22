@@ -74,12 +74,15 @@ kind: Service
 metadata:
   name: api-service
   namespace: gestion-proyectos
+  labels:
+    app: gestion-proyectos-api
 spec:
   selector:
     app: gestion-proyectos-api
   ports:
-    - port: 80
-      targetPort: 8080
+  - name: http
+    port: 80
+    targetPort: 8080
   # LoadBalancer: en local con Docker Desktop da una IP externa
   # En producción (EKS/GKE) crea un Load Balancer real en la nube
-  type: LoadBalancer
+  type: ClusterIP

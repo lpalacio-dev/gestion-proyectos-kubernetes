@@ -1,0 +1,43 @@
+# =============================================================================
+# PASO 1 — Instalar el Ingress Controller (nginx)
+# Ejecuta este comando UNA sola vez en tu terminal:
+#
+#   kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.1/deploy/static/provider/cloud/deploy.yaml
+#
+# Espera a que esté listo:
+#   kubectl get pods -n ingress-nginx -w
+#   (Ctrl+C cuando veas ingress-nginx-controller-xxx en Running)
+#
+# =============================================================================
+# PASO 2 — Aplicar este archivo:
+#   kubectl apply -f ingress.yaml
+#
+# Verificar:
+#   kubectl get ingress -n gestion-proyectos
+#
+# Probar:
+#   curl http://localhost/healthz
+#   curl http://localhost/api/projects
+# =============================================================================
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api-ingress
+  namespace: gestion-proyectos
+  annotations:
+    nginx.ingress.kubernetes.io/enable-gzip: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          # Todo el tráfico entra por aquí y va a tu API
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api-service
+                port:
+                  number: 80

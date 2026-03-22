@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: api-monitor
+  namespace: gestion-proyectos
+  labels:
+    release: kube-prometheus-stack   # debe coincidir con el nombre del Helm release
+spec:
+  jobLabel: app
+  selector:
+    matchLabels:
+      app: gestion-proyectos-api     # debe coincidir con el label de tu Service
+  endpoints:
+    - port: http                     # nombre del puerto en tu Service
+      path: /metrics
+      interval: 15s
+  namespaceSelector:
+    matchNames:
+      - gestion-proyectos
